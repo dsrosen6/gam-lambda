@@ -41,7 +41,7 @@ func main() {
 }
 
 func runGamCommands(ctx context.Context, event *event) (*results, error) {
-	logger := slog.New(slog.NewJSONHandler(os.Stderr,
+	logger := slog.New(slog.NewTextHandler(os.Stderr,
 		&slog.HandlerOptions{Level: slog.LevelDebug}))
 	slog.SetDefault(logger)
 
@@ -53,7 +53,6 @@ func runGamCommands(ctx context.Context, event *event) (*results, error) {
 
 	// Set up files
 	if err := setUpFiles(); err != nil {
-		slog.Error("could not set up files", "error", err)
 		return nil, fmt.Errorf("setUpFiles: %w", err)
 	}
 
@@ -62,6 +61,8 @@ func runGamCommands(ctx context.Context, event *event) (*results, error) {
 	if err != nil {
 		slog.Error("error selecting org", "error", err)
 		return nil, fmt.Errorf("error selecting org: %w", err)
+	} else {
+		slog.Info("org selected successfully", "org", event.Org)
 	}
 
 	// Run all commands in event, do not stop on error
@@ -74,8 +75,9 @@ func runGamCommands(ctx context.Context, event *event) (*results, error) {
 		}
 
 		// Append output to results
+		cmdStr := commandToString(cmd.Args)
 		res.Results = append(res.Results, cmdOutput{
-			Cmd:     commandToString(cmd.Args),
+			Cmd:     cmdStr,
 			Success: success,
 			Out:     out,
 		})
@@ -86,13 +88,17 @@ func runGamCommands(ctx context.Context, event *event) (*results, error) {
 
 // runGam runs a GAM command with the given arguments. GAM binary is provided by a Lambda layer
 func runGam(args ...string) (string, error) {
+	cmdStr := commandToString(args)
 	cmd := exec.Command(gamBin, args...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
+		slog.Error("gam command unsuccessful", "cmd", cmdStr, "error", err)
 		return string(out), fmt.Errorf("cmd.CombinedOutput: %w", err)
 	}
 
-	return string(out), nil
+	outStr := string(out)
+	slog.Debug("gam command successful", "cmd", cmdStr, "output", outStr)
+	return outStr, nil
 }
 
 // setUpFiles handles creating necessary directories and copying files from Lambda layers into said directories
@@ -108,6 +114,7 @@ func setUpFiles() error {
 		return fmt.Errorf("copyDir: %w", err)
 	}
 
+	slog.Info("success setting up all necessary files")
 	return nil
 }
 
@@ -116,9 +123,11 @@ func copyDir(src, dst string) error {
 	cmd := exec.Command("cp", "-r", src, dst)
 	err := cmd.Run()
 	if err != nil {
+		slog.Error("error copying directory", "src", src, "dst", dst, "error", err)
 		return fmt.Errorf("cmd.Run: %w", err)
 	}
 
+	slog.Debug("success copying directory", "src", src, "dst", dst)
 	return nil
 }
 
@@ -126,9 +135,11 @@ func copyDir(src, dst string) error {
 func makeDir(dirPath string) error {
 	err := os.MkdirAll(dirPath, os.ModePerm)
 	if err != nil {
+		slog.Error("error creating directory", "error", err)
 		return fmt.Errorf("os.MkdirAll: %w", err)
 	}
 
+	slog.Debug("success creating directory", "path", dirPath)
 	return nil
 }
 
