@@ -1,15 +1,16 @@
 #!/bin/bash
 
-# This script is used to upload the lambda function to AWS
+# Your variables
+function_name="gam-runner-v2"
 
-# Get the info of the lambda function
-lambdaName="gam-runner"
+# Main Logic
+export AWS_PAGER=""
 
-# Zip the lambda package folder
-cd lambda_package && zip -r ../lambda.zip . && cd .. 
+GOOS=linux GOARCH=arm64 go build -o bootstrap main.go
+zip function.zip bootstrap
 
-# Upload the lambda function to AWS
-aws lambda update-function-code --function-name $lambdaName --zip-file fileb://lambda.zip > /dev/null
+aws lambda update-function-code --function-name "$function_name" \
+--zip-file fileb://function.zip
 
-# Clean up the zip file
-rm lambda.zip
+# Clean up
+rm bootstrap function.zip

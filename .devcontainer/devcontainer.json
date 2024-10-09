@@ -1,0 +1,13 @@
+{
+    "name": "Amazon Linux Dev Container",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+               "ms-vscode.go"
+            ]
+        }
+    } 
+}
