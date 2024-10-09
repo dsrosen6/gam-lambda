@@ -1,4 +1,4 @@
-module github.com/dsrosen6/gam-lambda
+module github.com/thecoretg/lambda-gam-runner
 
 go 1.23.1
 

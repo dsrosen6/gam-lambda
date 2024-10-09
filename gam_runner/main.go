@@ -50,6 +50,7 @@ func runGamCommands(ctx context.Context, event *event) (*results, error) {
 		slog.Error("event is nil")
 		return nil, fmt.Errorf("event is nil")
 	}
+	slog.Debug("event received", "event", event)
 
 	// Set up files
 	if err := setUpFiles(); err != nil {
@@ -91,12 +92,12 @@ func runGam(args ...string) (string, error) {
 	cmdStr := commandToString(args)
 	cmd := exec.Command(gamBin, args...)
 	out, err := cmd.CombinedOutput()
+	outStr := string(out)
 	if err != nil {
-		slog.Error("gam command unsuccessful", "cmd", cmdStr, "error", err)
+		slog.Warn("gam command unsuccessful", "cmd", cmdStr, "output", outStr)
 		return string(out), fmt.Errorf("cmd.CombinedOutput: %w", err)
 	}
 
-	outStr := string(out)
 	slog.Debug("gam command successful", "cmd", cmdStr, "output", outStr)
 	return outStr, nil
 }
