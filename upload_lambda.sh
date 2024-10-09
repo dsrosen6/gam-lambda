@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Your variables
-function_name="gam-runner-v2"
+function_name="gam-runner"
 
 # Main Logic
 export AWS_PAGER=""
