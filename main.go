@@ -23,7 +23,7 @@ type event struct {
 }
 
 type command struct {
-	Cmd []string `json:"cmd"`
+	Args []string `json:"args"`
 }
 
 type results struct {
@@ -67,7 +67,7 @@ func runGamCommands(ctx context.Context, event *event) (*results, error) {
 	// Run all commands in event, do not stop on error
 	var res results
 	for _, cmd := range event.Cmds {
-		out, err := runGam(cmd.Cmd...)
+		out, err := runGam(cmd.Args...)
 		success := true
 		if err != nil {
 			success = false
@@ -75,7 +75,7 @@ func runGamCommands(ctx context.Context, event *event) (*results, error) {
 
 		// Append output to results
 		res.Results = append(res.Results, cmdOutput{
-			Cmd:     commandToString(cmd.Cmd),
+			Cmd:     commandToString(cmd.Args),
 			Success: success,
 			Out:     out,
 		})
